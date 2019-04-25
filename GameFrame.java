@@ -530,9 +530,13 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
 		textBox(g,leftOffset);
 		if (menu == 0)
 			menuButtons(g, leftOffset);
-		else if (menu == 1)
-			damageDealt(g, leftOffset);
-
+		else if (menu == 1) {
+			try {
+				damageDealt(g, leftOffset);
+				Thread.sleep(1000);
+			}catch (Exception e){}
+			menu = 0;
+		}
 	}
 
 	private void textBox(Graphics g, int leftOffset){
@@ -584,9 +588,13 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
 		g.setColor(Color.WHITE);
 		Font newFont = new Font ("TimesRoman", Font.ITALIC + Font.BOLD, 35);
 		g.setFont(newFont);
-
-
-		menu = 0;
+		if (player.getSpeed() > enemy.getSpeed()){
+			g.drawString("You dealt " + pDamage + " Damage!",leftOffset + 25, pHeight - 300);
+			g.drawString(enemy.name + " dealt " + pDamage + " Damage!",leftOffset + 25, pHeight - 250);
+		}else{
+			g.drawString(enemy.name + " dealt " + pDamage + " Damage!",leftOffset + 25, pHeight - 250);
+			g.drawString("You dealt " + pDamage + " Damage!",leftOffset + 25, pHeight - 300);
+		}
 	}
 
 	private void drawButtons (Graphics g) {
