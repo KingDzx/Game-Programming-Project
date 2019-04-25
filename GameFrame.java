@@ -1,4 +1,4 @@
-import com.sun.jnlp.JNLPRandomAccessFileImpl;
+//import com.sun.jnlp.JNLPRandomAccessFileImpl;
 
 import javax.swing.*;
 import java.awt.event.*;
@@ -25,7 +25,7 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
 
 	private Animation animation = null;
 	private Image bgImage;				// background image
-	private Classes.Mage player;
+	private Classes.Warrior player;
 	private Entity enemy;
 	AudioClip playSound = null;			// theme sound
 	private ArrayList<Image> tiles;
@@ -39,6 +39,7 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
 	private int menu = 0;
 	private int pDamage = 0;
 	private int eDamage = 0;
+	private boolean scannedEn = false;
   	// used at game termination
 	private boolean finishedOff = false;
 
@@ -95,7 +96,7 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
 
 		// create game sprites
 		Classes classes = new Classes(5,5);
-		player = classes.new Mage(5,5);
+		player = classes.new Warrior(5,5);
 
 		addMouseListener(new MouseAdapter() {
 			public void mousePressed(MouseEvent e) {
@@ -130,15 +131,15 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
 		quitButtonArea = new Rectangle(leftOffset, pHeight-60, 150, 40);
 
 		leftOffset = ((pWidth - (5 * 150) - (4 * 20)) / 2) + 825/2;
-		fightButtonArea = new Rectangle(leftOffset + 25,pHeight-300, 25,25);
+		fightButtonArea = new Rectangle(leftOffset + 25,pHeight-300, 60,25);
 
-		runButtonArea = new Rectangle(leftOffset + 156,pHeight-300, 25,25);
+		runButtonArea = new Rectangle(leftOffset + 156,pHeight-300, 60,25);
 
-		itemButtonArea =new Rectangle(leftOffset + 287,pHeight-300, 25,25);
+		itemButtonArea =new Rectangle(leftOffset + 287,pHeight-300, 60,25);
 
-		statsButtonArea =new Rectangle(leftOffset + 25,pHeight-250, 25,25);;
+		statsButtonArea =new Rectangle(leftOffset + 25,pHeight-250, 60,25);;
 
-		scanButtonArea =new Rectangle(leftOffset + 156,pHeight-250, 25,25);
+		scanButtonArea =new Rectangle(leftOffset + 156,pHeight-250, 60,25);
 
 		tiles = new ArrayList<>();
 		renderer = new TileMapRenderer();
@@ -261,6 +262,14 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
 		if (isOverItemButton){
 
 		}
+		
+		if(isOverStatsButton){
+		    menu = 2;
+		}
+
+		if(isOverScanButton){
+			menu = 3;
+		}
   	}
 
 
@@ -310,6 +319,8 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
 			player.moveDown();
 		}else if (keyCode == KeyEvent.VK_H){
 			player.setCurrHP(player.getHP());
+		}else if (keyCode == KeyEvent.VK_ENTER){
+		    menu = 0;
 		}
 
 		if (new Random().nextInt(100)+1 <= 20)
@@ -468,6 +479,7 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
 			if(!en.isAlive()){
 				fight = false;
 				player.increseStats(en.Level, false);
+				menu = 0;
 				return;
 			}
 			eDamage = en.attack(player);
@@ -487,6 +499,7 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
 			if(!en.isAlive()){
 				fight = false;
 				player.increseStats(en.Level, false);
+				menu = 0;
 				return;
 			}
 		}
@@ -531,11 +544,11 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
 		if (menu == 0)
 			menuButtons(g, leftOffset);
 		else if (menu == 1) {
-			try {
-				damageDealt(g, leftOffset);
-				Thread.sleep(1000);
-			}catch (Exception e){}
-			menu = 0;
+		    damageDealt(g, leftOffset);
+		}else if (menu == 2){
+		    displayStats(g,leftOffset);
+		}else if (menu == 3){
+			scanEnemy(g,leftOffset);
 		}
 	}
 
@@ -561,27 +574,27 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
 			g.setColor(Color.BLUE);
 		else
 			g.setColor(Color.GRAY);
-		g.drawString("Fight",fightButtonArea.x,fightButtonArea.y);
+		g.drawString("Fight",fightButtonArea.x,fightButtonArea.y + 13);
 		if (isOverRunButton && !isStopped)
 			g.setColor(Color.BLUE);
 		else
 			g.setColor(Color.GRAY);
-		g.drawString("Run",runButtonArea.x,runButtonArea.y);
+		g.drawString("Run",runButtonArea.x,runButtonArea.y + 13);
 		if (isOverItemButton && !isStopped)
 			g.setColor(Color.BLUE);
 		else
 			g.setColor(Color.GRAY);
-		g.drawString("Item",itemButtonArea.x,itemButtonArea.y);
+		g.drawString("Item",itemButtonArea.x,itemButtonArea.y + 13);
 		if (isOverStatsButton && !isStopped)
 			g.setColor(Color.BLUE);
 		else
 			g.setColor(Color.GRAY);
-		g.drawString("Stats",statsButtonArea.x,statsButtonArea.y);
+		g.drawString("Stats",statsButtonArea.x,statsButtonArea.y + 13);
 		if (isOverScanButton && !isStopped)
 			g.setColor(Color.BLUE);
 		else
 			g.setColor(Color.GRAY);
-		g.drawString("Scan",scanButtonArea.x,scanButtonArea.y);
+		g.drawString("Scan",scanButtonArea.x,scanButtonArea.y + 13);
 	}
 
 	private void damageDealt(Graphics g, int leftOffset){
@@ -590,10 +603,41 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
 		g.setFont(newFont);
 		if (player.getSpeed() > enemy.getSpeed()){
 			g.drawString("You dealt " + pDamage + " Damage!",leftOffset + 25, pHeight - 300);
-			g.drawString(enemy.name + " dealt " + pDamage + " Damage!",leftOffset + 25, pHeight - 250);
+			g.drawString(enemy.name + " dealt " + eDamage + " Damage!",leftOffset + 25, pHeight - 270);
 		}else{
-			g.drawString(enemy.name + " dealt " + pDamage + " Damage!",leftOffset + 25, pHeight - 250);
-			g.drawString("You dealt " + pDamage + " Damage!",leftOffset + 25, pHeight - 300);
+			g.drawString(enemy.name + " dealt " + eDamage + " Damage!",leftOffset + 25, pHeight - 300);
+			g.drawString("You dealt " + pDamage + " Damage!",leftOffset + 25, pHeight - 270);
+		}
+		g.drawString("Press enter to continue" , leftOffset + 25, pHeight - 240);
+	}
+	
+	private void displayStats(Graphics g, int leftOffset){
+	    g.setColor(Color.WHITE);
+	    Font newFont = new Font ("TimesRoman", Font.ITALIC + Font.BOLD, 35);
+	    g.setFont(newFont);
+	    
+	    g.drawString("Level: " + player.Level ,leftOffset + 25, pHeight - 300);
+	    g.drawString("Attack: " + player.Attack ,leftOffset + 25, pHeight - 270);
+	    g.drawString("Defense: " + player.Defense ,leftOffset + 420, pHeight - 270);
+	    g.drawString("Speed: " + player.Speed ,leftOffset + 25, pHeight - 240);
+	    g.drawString("Mana: " + player.mana ,leftOffset + 420, pHeight - 240);
+	}
+
+	private void scanEnemy(Graphics g, int leftOffset){
+		g.setColor(Color.WHITE);
+		Font newFont = new Font ("TimesRoman", Font.ITALIC + Font.BOLD, 35);
+		g.setFont(newFont);
+		int chance = new Random().nextInt(10 - 1) + 1;
+		if (!scannedEn) {
+			if (chance <= 4)
+				g.drawString("Enemy Attack: " + enemy.Attack, leftOffset + 25, pHeight - 300);
+			else if (chance <= 8)
+				g.drawString("Enemy Defense: " + enemy.Defense, leftOffset + 25, pHeight - 300);
+			else
+				g.drawString("Enemy Speed: " + enemy.Speed, leftOffset + 25, pHeight - 300);
+			scannedEn = true;
+		}else{
+			g.drawString("Enemy Already Scanned!", leftOffset + 25, pHeight - 300);
 		}
 	}
 
