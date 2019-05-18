@@ -731,6 +731,10 @@ public class GameFrame extends JFrame implements Runnable, KeyListener, MouseLis
 	    g.drawString("Defense: " + player.Defense ,leftOffset + 420, pHeight - 270);
 	    g.drawString("Speed: " + player.Speed ,leftOffset + 25, pHeight - 240);
 	    g.drawString("Mana: " + player.mana ,leftOffset + 420, pHeight - 240);
+
+		newFont = new Font ("TimesRoman", Font.ITALIC + Font.BOLD, 20);
+		g.setFont(newFont);
+		g.drawString("Press enter to continue" , leftOffset + 25, pHeight - 220);
 	}
 
 	private void scanEnemy(Graphics g, int leftOffset){
@@ -749,6 +753,7 @@ public class GameFrame extends JFrame implements Runnable, KeyListener, MouseLis
 		}else{
 			g.drawString("Enemy Already Scanned!", leftOffset + 25, pHeight - 300);
 		}
+		g.drawString("Press enter to continue" , leftOffset + 25, pHeight - 240);
 	}
 
 	private void levelingUp(Graphics g, int leftOffset){
@@ -762,6 +767,7 @@ public class GameFrame extends JFrame implements Runnable, KeyListener, MouseLis
 			g.drawString(allText[x], leftOffset + 25, pHeight - (300 - x * 10));
 			g.drawString(allText[x+1], leftOffset + 420, pHeight - (300 - x * 10));
 		}
+		g.drawString("Press enter to continue" , leftOffset + 25, pHeight - 230);
 	}
 
 	private void showInventory(Graphics g, int leftOffset){
@@ -786,6 +792,7 @@ public class GameFrame extends JFrame implements Runnable, KeyListener, MouseLis
 				g.drawString(item, leftOffset + 25 + (a * 200), pHeight - 270);
 			}
 		}
+		g.drawString("Press enter to exit" , leftOffset + 25, pHeight - 240);
 	}
 
 	private void drawButtons (Graphics g) {
@@ -1138,4 +1145,3 @@ public class GameFrame extends JFrame implements Runnable, KeyListener, MouseLis
 
 	}
 }
-
