@@ -16,7 +16,7 @@ import java.util.Iterator;
 import java.util.Random;
 import java.util.Scanner;
 
-public class GameFrame extends JFrame implements Runnable, KeyListener {
+public class GameFrame extends JFrame implements Runnable, KeyListener, MouseListener {
   	private static final int NUM_BUFFERS = 2;	// used for page flipping
 
 	private int pWidth, pHeight;     		// dimensions of screen
@@ -49,6 +49,8 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
 	private boolean stairPlaced = false;
 	private boolean scannedEn = false;
 	private Scanner input = new Scanner(System.in);
+	private String[] items = new String[3];
+	private String[] currentItems = new String[3];
   	// used at game termination
 	private boolean finishedOff = false;
 
@@ -175,7 +177,9 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
 			System.out.println("Errorrrrr!!!!111 " + e);
 		}
 		player.setAnimation(0);
-
+		items[0] = "Mango";
+		items[1] = "Chenette";
+		items[2] = "Doubles";
 		loadClips();
 		startGame();
 	}
@@ -294,6 +298,22 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
 			if (isOverScanButton) {
 				menu = 3;
 			}
+
+			int leftOffset = ((pWidth - (5 * 150) - (4 * 20)) / 2);
+			if (menu == 5) {
+				if ((y >= pHeight - 300 && y < pHeight - 240)) {
+					if ((x >= leftOffset + 25 && x < leftOffset + 225)) {
+						useItem(currentItems[0]);
+						player.inventory.remove(currentItems[0]);
+					}else if ((x >= leftOffset + 225 && x < leftOffset + 425)) {
+						useItem(currentItems[1]);
+						player.inventory.remove(currentItems[1]);
+					}else if ((x >= leftOffset + 425 && x < leftOffset + 625)) {
+						useItem(currentItems[2]);
+						player.inventory.remove(currentItems[2]);
+					}
+				}
+			}
 		}
   	}
 
@@ -372,7 +392,54 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
 
 	}
 
+	public void mouseClicked(MouseEvent e) {
 
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+
+	}
+
+	private void useItem(String s){
+		Random rand = new Random();
+		int chance = rand.nextInt(100) + 1;
+		if (s == "Mango"){
+			if (chance <= 10)
+				player.setCurrHP(player.getHP());
+			else if (chance <= 30)
+				player.setCurrHP((int)(player.getCurrHP() + player.getCurrHP()*0.75));
+			else if (chance <= 65)
+				player.setCurrHP((int)(player.getCurrHP() + player.getCurrHP()*0.5));
+			else if (chance > 65)
+				player.setCurrHP((int)(player.getCurrHP() + player.getCurrHP()*0.25));
+		}else if (s == "Chenette"){
+			if (chance <= 10)
+				player.currMana = player.mana;
+			else if (chance <= 30)
+				player.currMana = ((int)(player.currMana+ player.currMana*0.75));
+			else if (chance <= 65)
+				player.currMana = ((int)(player.currMana + player.currMana*0.5));
+			else if (chance > 65)
+				player.currMana = ((int)(player.currMana + player.currMana*0.25));
+		}
+		menu = 0;
+	}
 	// implmentation of MousePressedListener interface
 
 	// implmentation of MouseMotionListener interface
@@ -512,8 +579,10 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
 		if (player.getSpeed() > en.getSpeed()){
 			pDamage = player.attack(en);
 			if(!en.isAlive()){
+				int getItem = new Random().nextInt(100) + 1;
+				if (getItem <= 5)
+					player.inventory.add(items[new Random().nextInt(3)]);
 				lvlUpText = player.increseStats(en.Level, false, player);
-				System.out.println(lvlUpText);
 				menu = 4;
 				return;
 			}
@@ -532,8 +601,10 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
 			}
 			pDamage = player.attack(en);
 			if(!en.isAlive()){
+				int getItem = new Random().nextInt(100) + 1;
+				if (getItem <= 5)
+					player.inventory.add(items[new Random().nextInt(3)]);
 				lvlUpText = player.increseStats(en.Level, false, player);
-				System.out.println(lvlUpText);
 				menu = 4;
 				return;
 			}
@@ -711,6 +782,7 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
 		for (int a = 0; a < 3; a++){
 			if (i.hasNext()){
 				String item = (String) i.next();
+				currentItems[a] = item;
 				g.drawString(item, leftOffset + 25 + (a * 200), pHeight - 270);
 			}
 		}

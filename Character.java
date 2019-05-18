@@ -14,6 +14,6 @@ public class Character extends Entity {
         this.inventory = new ArrayList<>();
         this.inventory.add("Mango");
         this.inventory.add("Chenette");
-        this.inventory.add("Doubles");
+        this.inventory.add("Mango");
     }
 }
