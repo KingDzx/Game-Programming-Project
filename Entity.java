@@ -71,7 +71,7 @@ public class Entity{
 
     public void moveLeft () {
         setAnimationFromPrevious(1);
-        int newX = currAnimation.getX() - DX;
+        int newX = currAnimation.getX()- DX;
         currAnimation.setX(newX);
 
         if (newX < 0) {					// hits left wall
@@ -81,7 +81,7 @@ public class Entity{
 
     public void moveRight () {
         setAnimationFromPrevious(2);
-        int newX = currAnimation.getX() + DX;
+        int newX = currAnimation.getX()+ DX;
         currAnimation.setX(newX);
 
         if (newX + currAnimation.xSize >= currAnimation.dimension.width) {		// hits right wall
@@ -179,6 +179,10 @@ public class Entity{
             return true;
         else
             return false;
+    }
+
+    public Rectangle2D.Double getBoundingRectangle(){
+        return currAnimation.getBoundingRectangle();
     }
 
     public void setX(int x){

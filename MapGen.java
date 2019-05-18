@@ -11,7 +11,7 @@ public class MapGen {
         for (int x = 0; x < height; x++) {
             for (int y = 0; y < width; y++) {
                 if (Math.random() < chanceToStartAlive) {
-                    map[x][y] = true;
+                    map[y][x] = true;
                 }
             }
         }
@@ -43,7 +43,7 @@ public int countAliveNeighbours(boolean[][] map, int x, int y){
 }
 
     public boolean[][] doSimulationStep(boolean[][] oldMap){
-        boolean[][] newMap = new boolean[height][width];
+        boolean[][] newMap = new boolean[width][height];
         //Loop over each row and column of the map
         for(int x=0; x<oldMap.length; x++){
             for(int y=0; y<oldMap[0].length; y++){
@@ -51,7 +51,7 @@ public int countAliveNeighbours(boolean[][] map, int x, int y){
                 //The new value is based on our simulation rules
                 //First, if a cell is alive but has too few neighbours, kill it.
                 if(oldMap[x][y]){
-                    if(nbs < 3){
+                    if(nbs > 3){
                         newMap[x][y] = false;
                     }
                     else{
@@ -59,7 +59,7 @@ public int countAliveNeighbours(boolean[][] map, int x, int y){
                     }
                 } //Otherwise, if the cell is dead now, check if it has the right number of neighbours to be 'born'
                 else{
-                    if(nbs > 5){
+                    if(nbs < 5){
                         newMap[x][y] = true;
                     }
                     else{

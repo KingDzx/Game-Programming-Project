@@ -30,6 +30,26 @@ public class Classes extends Character{
         currMana += Mana;
     }
 
+    public String increseStats(int enLvl, boolean boss, Classes c){
+        String S = "";
+        int gain = addExp(enLvl, boss);
+        int nextLevel = this.Level + 1;
+        int lvlup = (int)Math.floor(1.2 * Math.pow(nextLevel,3) - 15 * Math.pow(nextLevel,2) + 100 * nextLevel - 140);
+        if (this.Level < 100)
+            S = "You Gained " + gain + " exp!\n";
+        if (c instanceof Classes.Mage)
+            S = S + ((Mage) c).gainLevels(lvlup);
+        else if (c instanceof Classes.Assassin)
+            S = S + ((Assassin) c).gainLevels(lvlup);
+        else if (c instanceof Classes.Marksman)
+            S = S + ((Marksman) c).gainLevels(lvlup);
+        else if (c instanceof Classes.Tank)
+            S = S + ((Tank) c).gainLevels(lvlup);
+        else if (c instanceof Classes.Warrior)
+            S = S + ((Warrior) c).gainLevels(lvlup);
+        return S;
+    }
+
     public class Mage extends Classes{
         public Mage(int dx, int dy){
             super(dx,dy);
@@ -42,31 +62,49 @@ public class Classes extends Character{
             this.setStats(HP,atk,def,spd,5, name);
         }
 
-        public void increseStats(int enLvl, boolean boss){
-            int gain = addExp(enLvl, boss);
-            int nextLevel = this.Level + 1;
-            int lvlup = (int)Math.floor(1.2 * Math.pow(nextLevel,3) - 15 * Math.pow(nextLevel,2) + 100 * nextLevel - 140);
-            if (this.Level < 100)
-                System.out.println("You Gained " + gain + " exp!");
+        public String gainLevels(int lvlup){
+            String s;
+            int levelsGained = 0;
+            int totalHP = 0;
+            int totalAtk = 0;
+            int totalDef = 0;
+            int totalSpd = 0;
+            int totalMana = 0;
             while (this.exp > lvlup){
                 if (this.Level >= 100)
                     break;
                 else if (this.Level < 100){
                     if(this.exp > lvlup) {
                         System.out.println("You gained a level!");
+                        levelsGained += 1;
                         int hpGain = rand.nextInt(7 - 2) + 2;
                         int atkGain = (int) Math.floor((rand.nextInt(4 - 1) + 1) * 1.5);
                         int defGain = rand.nextInt(4 - 1) + 1;
                         int spdGain = (int) Math.floor((rand.nextInt(4 - 1) + 1) * 0.5);
                         int manaGain = (int) Math.floor((rand.nextInt(10 - 5) + 5) * 1.25);
 
+                        totalHP += hpGain;
+                        totalAtk += atkGain;
+                        totalDef += defGain;
+                        totalSpd += spdGain;
+                        totalMana += manaGain;
+
                         addStats(hpGain, atkGain, defGain, spdGain, manaGain);
 
-                        nextLevel = this.Level + 1;
+                        int nextLevel = this.Level + 1;
                         lvlup = (int) Math.floor(1.2 * Math.pow(nextLevel, 3) - 15 * Math.pow(nextLevel, 2) + 100 * nextLevel - 140);
                     }
                 }
             }
+            if (levelsGained > 0)
+                return "You gained " + levelsGained + " Level(s)\n" +
+                    "HP + " + totalHP + " = " + this.HP + "\n" +
+                    "Attack + " + totalAtk + " = " + this.Attack + "\n" +
+                    "Defense + " + totalDef + " = " + this.Defense + "\n" +
+                    "Speed + " + totalSpd + " = " + this.Speed + "\n" +
+                    "Mana + " + totalMana + " = " + this.mana + "\n";
+            else
+                return "";
         }
     }
 
@@ -82,30 +120,49 @@ public class Classes extends Character{
             setStats(HP,atk,def,spd,5, name);
         }
 
-        public void increseStats(int enLvl, boolean boss){
-            int gain = addExp(enLvl, boss);
-            int nextLevel = this.Level + 1;
-            int lvlup = (int)Math.floor(1.2 * Math.pow(nextLevel,3) - 15 * Math.pow(nextLevel,2) + 100 * nextLevel - 140);
-            if (this.Level < 100)
-                System.out.println("You Gained " + gain + " exp!");
+        public String gainLevels(int lvlup){
+            String s;
+            int levelsGained = 0;
+            int totalHP = 0;
+            int totalAtk = 0;
+            int totalDef = 0;
+            int totalSpd = 0;
+            int totalMana = 0;
             while (this.exp > lvlup){
                 if (this.Level >= 100)
                     break;
                 else if (this.Level < 100){
                     if(this.exp > lvlup) {
+                        System.out.println("You gained a level!");
+                        levelsGained += 1;
                         int hpGain = (int) Math.floor((rand.nextInt(7 - 2) + 2) * 0.5);
                         int atkGain = rand.nextInt(5 - 3) + 3;
                         int defGain = rand.nextInt(4 - 1) + 1;
                         int spdGain = rand.nextInt(5 - 3) + 3;
                         int manaGain = rand.nextInt(10 - 5) + 5;
 
+                        totalHP += hpGain;
+                        totalAtk += atkGain;
+                        totalDef += defGain;
+                        totalSpd += spdGain;
+                        totalMana += manaGain;
+
                         addStats(hpGain, atkGain, defGain, spdGain, manaGain);
 
-                        nextLevel = this.Level + 1;
+                        int nextLevel = this.Level + 1;
                         lvlup = (int) Math.floor(1.2 * Math.pow(nextLevel, 3) - 15 * Math.pow(nextLevel, 2) + 100 * nextLevel - 140);
                     }
                 }
             }
+            if (levelsGained > 0)
+                return "You gained " + levelsGained + " Level(s)\n" +
+                        "HP + " + totalHP + " = " + this.HP + "\n" +
+                        "Attack + " + totalAtk + " = " + this.Attack + "\n" +
+                        "Defense + " + totalDef + " = " + this.Defense + "\n" +
+                        "Speed + " + totalSpd + " = " + this.Speed + "\n" +
+                        "Mana + " + totalMana + " = " + this.mana + "\n";
+            else
+                return "";
         }
     }
 
@@ -121,30 +178,49 @@ public class Classes extends Character{
             setStats(HP,atk,def,spd,5, name);
         }
 
-        public void increseStats(int enLvl, boolean boss){
-            int gain = addExp(enLvl, boss);
-            int nextLevel = Level + 1;
-            int lvlup = (int)Math.floor(1.2 * Math.pow(nextLevel,3) - 15 * Math.pow(nextLevel,2) + 100 * nextLevel - 140);
-            if (this.Level < 100)
-                System.out.println("You Gained " + gain + " exp!");
+        public String gainLevels(int lvlup){
+            String s;
+            int levelsGained = 0;
+            int totalHP = 0;
+            int totalAtk = 0;
+            int totalDef = 0;
+            int totalSpd = 0;
+            int totalMana = 0;
             while (this.exp > lvlup){
-                if (Level >= 100)
+                if (this.Level >= 100)
                     break;
                 else if (this.Level < 100){
                     if(this.exp > lvlup) {
+                        System.out.println("You gained a level!");
+                        levelsGained += 1;
                         int hpGain = (int) Math.floor((rand.nextInt(7 - 2) + 2) * 0.5);
                         int atkGain = rand.nextInt(5 - 3) + 3;
                         int defGain = rand.nextInt(5 - 3) + 3;
                         int spdGain = rand.nextInt(4 - 1) + 1;
                         int manaGain = rand.nextInt(10 - 5) + 5;
 
+                        totalHP += hpGain;
+                        totalAtk += atkGain;
+                        totalDef += defGain;
+                        totalSpd += spdGain;
+                        totalMana += manaGain;
+
                         addStats(hpGain, atkGain, defGain, spdGain, manaGain);
 
-                        nextLevel = this.Level + 1;
+                        int nextLevel = this.Level + 1;
                         lvlup = (int) Math.floor(1.2 * Math.pow(nextLevel, 3) - 15 * Math.pow(nextLevel, 2) + 100 * nextLevel - 140);
                     }
                 }
             }
+            if (levelsGained > 0)
+                return "You gained " + levelsGained + " Level(s)\n" +
+                        "HP + " + totalHP + " = " + this.HP + "\n" +
+                        "Attack + " + totalAtk + " = " + this.Attack + "\n" +
+                        "Defense + " + totalDef + " = " + this.Defense + "\n" +
+                        "Speed + " + totalSpd + " = " + this.Speed + "\n" +
+                        "Mana + " + totalMana + " = " + this.mana + "\n";
+            else
+                return "";
         }
     }
 
@@ -160,30 +236,49 @@ public class Classes extends Character{
             setStats(HP,atk,def,spd,5, name);
         }
 
-        public void increseStats(int enLvl, boolean boss){
-            int gain = addExp(enLvl, boss);
-            int nextLevel = this.Level + 1;
-            int lvlup = (int)Math.floor(1.2 * Math.pow(nextLevel,3) - 15 * Math.pow(nextLevel,2) + 100 * nextLevel - 140);
-            if (this.Level < 100)
-                System.out.println("You Gained " + gain + " exp!");
+        public String gainLevels(int lvlup){
+            String s;
+            int levelsGained = 0;
+            int totalHP = 0;
+            int totalAtk = 0;
+            int totalDef = 0;
+            int totalSpd = 0;
+            int totalMana = 0;
             while (this.exp > lvlup){
                 if (this.Level >= 100)
                     break;
                 else if (this.Level < 100){
                     if(this.exp > lvlup) {
+                        System.out.println("You gained a level!");
+                        levelsGained += 1;
                         int hpGain = rand.nextInt(10 - 7) + 7;
                         int atkGain = (int) Math.floor((rand.nextInt(4 - 1) + 1) * 0.5);
                         int defGain = rand.nextInt(5 - 3) + 3;
                         int spdGain = rand.nextInt(4 - 1) + 1;
                         int manaGain = rand.nextInt(10 - 5) + 5;
 
+                        totalHP += hpGain;
+                        totalAtk += atkGain;
+                        totalDef += defGain;
+                        totalSpd += spdGain;
+                        totalMana += manaGain;
+
                         addStats(hpGain, atkGain, defGain, spdGain, manaGain);
 
-                        nextLevel = this.Level + 1;
+                        int nextLevel = this.Level + 1;
                         lvlup = (int) Math.floor(1.2 * Math.pow(nextLevel, 3) - 15 * Math.pow(nextLevel, 2) + 100 * nextLevel - 140);
                     }
                 }
             }
+            if (levelsGained > 0)
+                return "You gained " + levelsGained + " Level(s)\n" +
+                        "HP + " + totalHP + " = " + this.HP + "\n" +
+                        "Attack + " + totalAtk + " = " + this.Attack + "\n" +
+                        "Defense + " + totalDef + " = " + this.Defense + "\n" +
+                        "Speed + " + totalSpd + " = " + this.Speed + "\n" +
+                        "Mana + " + totalMana + " = " + this.mana + "\n";
+            else
+                return "";
         }
     }
 
@@ -199,30 +294,49 @@ public class Classes extends Character{
             setStats(HP,atk,def,spd,5, name);
         }
 
-        public void increseStats(int enLvl, boolean boss){
-            int gain = addExp(enLvl, boss);
-            int nextLevel = this.Level + 1;
-            int lvlup = (int)Math.floor(1.2 * Math.pow(nextLevel,3) - 15 * Math.pow(nextLevel,2) + 100 * nextLevel - 140);
-            if (this.Level < 100)
-                System.out.println("You Gained " + gain + " exp!");
+        public String gainLevels(int lvlup){
+            String s;
+            int levelsGained = 0;
+            int totalHP = 0;
+            int totalAtk = 0;
+            int totalDef = 0;
+            int totalSpd = 0;
+            int totalMana = 0;
             while (this.exp > lvlup){
                 if (this.Level >= 100)
                     break;
                 else if (this.Level < 100){
                     if(this.exp > lvlup) {
+                        System.out.println("You gained a level!");
+                        levelsGained += 1;
                         int hpGain = rand.nextInt(7 - 2) + 2;
                         int atkGain = rand.nextInt(4 - 1) + 1;
                         int defGain = (int) Math.floor((rand.nextInt(4 - 1) + 1) * 0.5);
                         int spdGain = (int) Math.floor((rand.nextInt(4 - 1) + 1) * 1.5);
                         int manaGain = rand.nextInt(10 - 5) + 5;
 
+                        totalHP += hpGain;
+                        totalAtk += atkGain;
+                        totalDef += defGain;
+                        totalSpd += spdGain;
+                        totalMana += manaGain;
+
                         addStats(hpGain, atkGain, defGain, spdGain, manaGain);
 
-                        nextLevel = this.Level + 1;
+                        int nextLevel = this.Level + 1;
                         lvlup = (int) Math.floor(1.2 * Math.pow(nextLevel, 3) - 15 * Math.pow(nextLevel, 2) + 100 * nextLevel - 140);
                     }
                 }
             }
+            if (levelsGained > 0)
+                return "You gained " + levelsGained + " Level(s)\n" +
+                        "HP + " + totalHP + " = " + this.HP + "\n" +
+                        "Attack + " + totalAtk + " = " + this.Attack + "\n" +
+                        "Defense + " + totalDef + " = " + this.Defense + "\n" +
+                        "Speed + " + totalSpd + " = " + this.Speed + "\n" +
+                        "Mana + " + totalMana + " = " + this.mana + "\n";
+            else
+                return "";
         }
     }
 }

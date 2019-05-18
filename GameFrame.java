@@ -3,6 +3,7 @@
 import javax.swing.*;
 import java.awt.event.*;
 import java.awt.*;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferStrategy;
 import java.applet.Applet;
 import java.applet.AudioClip;
@@ -11,6 +12,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -25,11 +27,12 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
 
 	private Animation animation = null;
 	private Image bgImage;				// background image
-	private Classes.Warrior player;
+	private Classes player;
 	private Entity enemy;
 	AudioClip playSound = null;			// theme sound
 	private ArrayList<Image> tiles;
 	private TileMap map;
+	private TileMap battleBackground;
 	private TileMapRenderer renderer;
 	private boolean fight = false;
 	private boolean resetPos = false;
@@ -39,7 +42,13 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
 	private int menu = 0;
 	private int pDamage = 0;
 	private int eDamage = 0;
+	private int stairX = 0;
+	private int stairY = 0;
+	private int floor = 1;
+	private String lvlUpText;
+	private boolean stairPlaced = false;
 	private boolean scannedEn = false;
+	private Scanner input = new Scanner(System.in);
   	// used at game termination
 	private boolean finishedOff = false;
 
@@ -95,8 +104,23 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
 		initFullScreen();
 
 		// create game sprites
-		Classes classes = new Classes(5,5);
-		player = classes.new Warrior(5,5);
+		Classes classes = new Classes(20,20);
+		while (player == null) {
+			System.out.println("Please enter the class you wish to play as (Mage, Assassin, Marksman, Tank or Warrior)");
+			String chosenClass = input.next();
+			if (chosenClass.equals("Mage"))
+				player = classes.new Mage(20,20);
+			else if (chosenClass.equals("Assassin"))
+				player = classes.new Assassin(20,20);
+			else if (chosenClass.equals("Marksman"))
+				player = classes.new Marksman(20,20);
+			else if (chosenClass.equals("Tank"))
+				player = classes.new Tank(20,20);
+			else if (chosenClass.equals("Warrior"))
+				player = classes.new Warrior(20,20);
+			else
+				System.out.println("Invalid class, choose again");
+		}
 
 		addMouseListener(new MouseAdapter() {
 			public void mousePressed(MouseEvent e) {
@@ -146,13 +170,11 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
 
 		loadImages();
 		try{
-			map = loadMap("maps/map1.txt");
+			map = loadMap(30,17);
 		}catch (Exception e){
 			System.out.println("Errorrrrr!!!!111 " + e);
 		}
 		player.setAnimation(0);
-
-		Timer = System.currentTimeMillis() + (5*60*1000);
 
 		loadClips();
 		startGame();
@@ -235,40 +257,43 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
 			running = false;		// set running to false to terminate
 		}
 
-		if (isOverFightButton){
-			if (enemy.isAlive()) {
-				FIGHT(enemy);
-				menu = 1;
-			}
-		}
-		if (isOverRunButton){
-			int num1 = enemy.Speed / 4;
-			if (num1 < 1)
-				num1 = 1;
-			int chance = (((player.Speed * 32) / num1) + 30) * runAttempt / 256;
-			int willRun = new Random().nextInt(255);
-			if (chance < willRun)
-				fight = false;
-			else{
-				enemy.attack(player);
-				if (!player.isAlive()){
-					isStopped = true;
-					fight = false;
-					return;
+		if (fight) {
+			if (isOverFightButton) {
+				if (enemy.isAlive()) {
+					menu = 1;
+					FIGHT(enemy);
+
 				}
 			}
-		}
+			if (isOverRunButton) {
+				int num1 = enemy.Speed / 4;
+				if (num1 < 1)
+					num1 = 1;
+				int chance = (((player.Speed * 32) / num1) + 30) * runAttempt / 256;
+				int willRun = new Random().nextInt(255);
+				if (chance < willRun)
+					fight = false;
+				else {
+					enemy.attack(player);
+					if (!player.isAlive()) {
+						isStopped = true;
+						fight = false;
+						return;
+					}
+				}
+			}
 
-		if (isOverItemButton){
+			if (isOverItemButton) {
+				menu = 5;
+			}
 
-		}
-		
-		if(isOverStatsButton){
-		    menu = 2;
-		}
+			if (isOverStatsButton) {
+				menu = 2;
+			}
 
-		if(isOverScanButton){
-			menu = 3;
+			if (isOverScanButton) {
+				menu = 3;
+			}
 		}
   	}
 
@@ -320,10 +345,22 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
 		}else if (keyCode == KeyEvent.VK_H){
 			player.setCurrHP(player.getHP());
 		}else if (keyCode == KeyEvent.VK_ENTER){
+			if (menu == 4)
+				fight = false;
 		    menu = 0;
 		}
 
-		if (new Random().nextInt(100)+1 <= 20)
+		if (player.getBoundingRectangle().intersects(new Rectangle2D.Double(stairX, stairY, 64,64))){
+			try {
+				map = loadMap(map.getWidth(), map.getHeight());
+				stairPlaced = false;
+				floor += 1;
+			} catch (IOException x) {
+				x.printStackTrace();
+			}
+		}
+
+		if (new Random().nextInt(100)+1 <= 5)
 			fight = true;
 	}
 
@@ -346,10 +383,10 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
 
 		running = true;
 		try {
-			while (running && (Timer > System.currentTimeMillis())) {
+			while (running) {
 	  			gameUpdate();
 	  			screenUpdate();
-				Thread.sleep(100);
+				Thread.sleep(17);
 			}
 			Thread.sleep(1000);
 		}
@@ -393,8 +430,6 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
 
 			gScr.setColor(Color.GREEN);
 			gScr.setFont(new Font("SansSerif", Font.BOLD, 20));
-			gScr.drawString(Long.toString(((Timer - System.currentTimeMillis()) / 1000)/60)+ ":" + Long.toString(((Timer - System.currentTimeMillis()) / 1000)%60),pWidth/2-20,20);
-
 
 			if (!player.isAlive()){
 				try{
@@ -444,7 +479,7 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
 
 	private void FightRenderer(Graphics gScr){
 		if(enemy==null) {
-			enemy = new Monster(0, 0, player.Level);
+			enemy = new Monster(0, 0, floor);
 			loadAnimation(enemy);
 			enemy.setAnimation(0);
 		}
@@ -477,9 +512,9 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
 		if (player.getSpeed() > en.getSpeed()){
 			pDamage = player.attack(en);
 			if(!en.isAlive()){
-				fight = false;
-				player.increseStats(en.Level, false);
-				menu = 0;
+				lvlUpText = player.increseStats(en.Level, false, player);
+				System.out.println(lvlUpText);
+				menu = 4;
 				return;
 			}
 			eDamage = en.attack(player);
@@ -497,9 +532,9 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
 			}
 			pDamage = player.attack(en);
 			if(!en.isAlive()){
-				fight = false;
-				player.increseStats(en.Level, false);
-				menu = 0;
+				lvlUpText = player.increseStats(en.Level, false, player);
+				System.out.println(lvlUpText);
+				menu = 4;
 				return;
 			}
 		}
@@ -549,6 +584,10 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
 		    displayStats(g,leftOffset);
 		}else if (menu == 3){
 			scanEnemy(g,leftOffset);
+		}else if (menu == 4){
+			levelingUp(g,leftOffset);
+		}else if (menu == 5){
+			showInventory(g,leftOffset);
 		}
 	}
 
@@ -638,6 +677,42 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
 			scannedEn = true;
 		}else{
 			g.drawString("Enemy Already Scanned!", leftOffset + 25, pHeight - 300);
+		}
+	}
+
+	private void levelingUp(Graphics g, int leftOffset){
+		g.setColor(Color.WHITE);
+		Font newFont = new Font ("TimesRoman", Font.ITALIC + Font.BOLD, 20);
+		g.setFont(newFont);
+
+		String[] allText = lvlUpText.split("\n");
+		g.drawString(allText[0], leftOffset + 25, pHeight - 310);
+		for (int x = 1; x < allText.length; x+=2) {
+			g.drawString(allText[x], leftOffset + 25, pHeight - (300 - x * 10));
+			g.drawString(allText[x+1], leftOffset + 420, pHeight - (300 - x * 10));
+		}
+	}
+
+	private void showInventory(Graphics g, int leftOffset){
+		g.setColor(Color.WHITE);
+		Font newFont = new Font ("TimesRoman", Font.ITALIC + Font.BOLD, 35);
+		g.setFont(newFont);
+
+		int[] x = new int[3];
+		int[] y = new int[3];
+		int n = 3;
+
+		x[0]=leftOffset + 600; x[1]=leftOffset + 600; x[2]=leftOffset + 625;
+		y[0]=pHeight - 300; y[1]=pHeight - 270; y[2]=pHeight - 285;
+		Polygon poly = new Polygon(x,y,n);
+
+		g.fillPolygon(poly);
+		Iterator i = player.inventory.iterator();
+		for (int a = 0; a < 3; a++){
+			if (i.hasNext()){
+				String item = (String) i.next();
+				g.drawString(item, leftOffset + 25 + (a * 200), pHeight - 270);
+			}
 		}
 	}
 
@@ -812,11 +887,11 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
 		}
 
 		// create animation object and insert frames
-		int X = rand.nextInt(pWidth - 75);
-		int Y = rand.nextInt(pWidth - 75);
+		int X = rand.nextInt(pWidth) - 75;
+		int Y = rand.nextInt(pWidth)  - 75;
 
 		for (int i = 0; i < 4; i++) {
-			animation = new Animation(this, X, Y, 0, 0, 75, 75, "images/player1.png");
+			animation = new Animation(this, X, Y, 0, 0, 64, 64, "images/player1.png");
 			for (int j = 0; j < 4; j++) {
 				BufferedImage frameImage = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
 				/*
@@ -849,90 +924,70 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
 		loadAnimation(player);
 		//loadAnimation(enemy);
 
-		Image mapImage = loadImage("images/TileMap.png");
-
-		int tileWidth = (int) mapImage.getWidth(null) / (4*8);
-		int tileHeight = (int) mapImage.getHeight(null) / (6*4);
-
-		int terrainWidth = (int) mapImage.getWidth(null) / 8;
-		int terrainHeight = (int) mapImage.getHeight(null) / 4;
-
-		for (int i=0; i<6; i++){
-			for (int j=0; j<4; j++){
-				BufferedImage frameImage = new BufferedImage(pWidth/(4*8), pHeight/(6*3), BufferedImage.TYPE_INT_ARGB);
-
+		Image mapImage = loadImage("images/0x72_DungeonTilesetII_v1.1.png");
+		try {
+			BufferedReader reader = new BufferedReader(new FileReader("tiles_list_v1.1"));
+			String line = reader.readLine();
+			int count = 0;
+			while (line != null) {
+				System.out.println(count + " " + line);
+				String[] newTile = line.split(" ");
+				BufferedImage frameImage = new BufferedImage(Integer.parseInt(newTile[3])*4, Integer.parseInt(newTile[4])*4, BufferedImage.TYPE_INT_ARGB);
 				Graphics2D g = (Graphics2D) frameImage.getGraphics();
-
+				if (count > 7){
+					g.drawImage(tiles.get(0),0,0,null);
+				}
 				g.drawImage(mapImage,
-						0, 0, pWidth/(4*8), pHeight/(6*3),
-						j * tileWidth + terrainWidth * 2, i * tileHeight, (j * tileWidth) + tileWidth + terrainWidth * 2, (i * tileHeight) + tileHeight,
+						0, 0, Integer.parseInt(newTile[3])*4, Integer.parseInt(newTile[4])*4,
+						Integer.parseInt(newTile[1]), Integer.parseInt(newTile[2]), Integer.parseInt(newTile[3]) + Integer.parseInt(newTile[1]), Integer.parseInt(newTile[4]) + Integer.parseInt(newTile[2]),
 						null);
 
 				tiles.add(frameImage);
+				count += 1;
+				line = reader.readLine();
 			}
+			System.out.println("Reader Closed");
+			reader.close();
+		}catch (Exception e){
+			System.out.println("File cannot be opened");
 		}
 	}
 
 	private boolean[][] generateMap(MapGen x){
 		//Create a new map
-		boolean[][] cellmap = new boolean[x.getHeight()][x.getWidth()];
+		boolean[][] cellmap = new boolean[x.getWidth()][x.getHeight()];
 		//Set up the map with random values
 		cellmap = x.initialiseMap(cellmap);
 		//And now run the simulation for a set number of steps
-		for(int i=0; i<10; i++){
+		for(int i=0; i<9; i++){
 			cellmap = x.doSimulationStep(cellmap);
 		}
-
 		for (int i = 0; i < x.getHeight(); i++){
 			for (int j = 0; j< x.getWidth(); j++){
-				if (cellmap[i][j] == true)
+				if (cellmap[j][i] == true)
 					System.out.print("0");
 				else
-					System.out.print(new Random().nextInt(5));
+					System.out.print("1");
 			}
 			System.out.println("");
 		}
-
 		return cellmap;
 	}
 
-	private TileMap loadMap(String filename) throws IOException {
-		/*
-		ArrayList<String> lines = new ArrayList<>();
-		int width = 0;
-		int height = 0;
-		// read every line in the text file into the list
-		BufferedReader reader = new BufferedReader(
-				new FileReader(filename));
-		while (true) {
-			String line = reader.readLine();
-			// no more lines to read
-			if (line == null) {
-				reader.close();
-				break;
-			}
-			// add every line except for comments
-			if (!line.startsWith("#")) {
-				lines.add(line);
-				width = Math.max(width, line.length());
-			}
-		}
-		// parse the lines to create a TileEngine
-		height = lines.size();
-		*/
-		MapGen x = new MapGen(50,50);
+	private TileMap loadMap(int w, int h) throws IOException {
+		MapGen x = new MapGen(w,h);
 		boolean[][] cellmap = generateMap(x);
 		TileMap newMap = new TileMap(x.getWidth(), x.getHeight());
 		for (int y=0; y<x.getHeight(); y++) {
-			boolean[] line = cellmap[y];
 			for (int z=0; z<x.getWidth(); z++) {
-				//char ch = line.charAt(x);
-				// check if the char represents tile A, B, C, etc.
-				//int tile = ch - 'A';
-				if (line[y] == true) {
-					newMap.setTile(z, y, (Image)tiles.get(new Random().nextInt(2)));
-				}else{
-					newMap.setTile(z, y, (Image)tiles.get(new Random().nextInt(2)+4));
+				if (cellmap[z][y]) {
+					newMap.setTile(z, y, tiles.get(getTileNum(z, y, cellmap, x.getHeight(), x.getWidth(), newMap)));
+				}
+				if (y == 10 && z == 10 && !stairPlaced) {
+					stairPlaced = true;
+					stairX = z * 64;
+					stairY = y * 64;
+					newMap.setTile(z, y, tiles.get(33));
 				}
 			}
 		}
@@ -941,6 +996,51 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
 		return newMap;
 	}
 
+	private int getTileNum(int x, int y, boolean[][] map, int limitY, int limitX, TileMap t){
+		/*
+		//System.out.println(x + " " + y);
+		if (x > 0 && map[x-1][y]) {
+			//System.out.println("made it here 2");
+			if (y > 0 && map[x][y - 1]) {
+				t.setTile(x, y-1,tiles.get(41));
+				return 43;
+			} else if (y < limitY-1 && map[x][y + 1]) {
+				t.setTile(x, y+1,tiles.get(47));
+				return 45;
+			} else {
+				return 38;
+			}
+		}
+		if (x < limitX-1 && map[x+1][y]) {
+			//System.out.println("made it here 3");
+			if (y > 0 && map[x][y - 1]) {
+				t.setTile(x, y-1,tiles.get(42));
+				return 44;
+			} else if (y < limitY-1 && map[x][y + 1]) {
+				t.setTile(x, y+1,tiles.get(48));
+				return 46;
+			} else {
+				return 37;
+			}
+		}
+		//System.out.println("made it here 4");
+		if (y > 0 && map[x][y - 1]) {
+			t.setTile(x, y-1,tiles.get(0));
+			return 3;
+		} else if (y < limitY-1 && map[x][y + 1]) {
+			t.setTile(x, y+1,tiles.get(5));
+			return 2;
+		}else{*/
+			int setStair = new Random().nextInt(100);
+			if ((setStair <= 5 || (y == 15 && x == 20)) && stairPlaced == false){
+				stairPlaced = true;
+				stairX = x * 64;
+				stairY = y * 64;
+				return 33;
+			}
+			return new Random().nextInt(7);
+		//}
+	}
 
 	public Image loadImage (String fileName) {
 		return new ImageIcon(fileName).getImage();
@@ -965,6 +1065,5 @@ public class GameFrame extends JFrame implements Runnable, KeyListener {
 			playSound.play();
 
 	}
-
 }
 
